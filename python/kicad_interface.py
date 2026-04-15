@@ -2678,7 +2678,15 @@ class KiCADInterface:
                 violations = []
                 severity_counts = {"error": 0, "warning": 0, "info": 0}
 
-                for v in erc_data.get("violations", []):
+                # kicad-cli sch erc JSON nests violations under sheets[].violations
+                raw_violations = []
+                for sheet in erc_data.get("sheets", []):
+                    raw_violations.extend(sheet.get("violations", []))
+                # Fall back to top-level violations key for older kicad-cli versions
+                if not raw_violations:
+                    raw_violations = erc_data.get("violations", [])
+
+                for v in raw_violations:
                     vseverity = v.get("severity", "error")
                     items = v.get("items", [])
                     loc = {}
